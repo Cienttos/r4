@@ -59,6 +59,9 @@ const DevModePanel = ({ onClose, authToken, onLogout }) => {
       const errorText = await response.text();
       throw new Error(`Error de API (${endpoint}): ${response.status} ${response.statusText} - ${errorText}`);
     }
+    if (response.status === 204) {
+      return null;
+    }
     return response.json();
   };
 
