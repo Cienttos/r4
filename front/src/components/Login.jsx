@@ -1,44 +1,47 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Login = ({ onLoginSuccess }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState('info'); // 'success', 'error', 'info'
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("info"); // 'success', 'error', 'info'
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage('');
-    setMessageType('info');
+    setMessage("");
+    setMessageType("info");
 
     try {
-      const response = await fetch('https://r4-seven.vercel.app/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await fetch(
+        "https://r4-seven-one.vercel.app/api/auth/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
       const data = await response.json();
 
       if (!response.ok) {
-        setMessage(`Error: ${data.error || 'Error al iniciar sesión'}`);
-        setMessageType('error');
+        setMessage(`Error: ${data.error || "Error al iniciar sesión"}`);
+        setMessageType("error");
       } else if (data.user) {
-        setMessage('¡Inicio de sesión exitoso!');
-        setMessageType('success');
+        setMessage("¡Inicio de sesión exitoso!");
+        setMessageType("success");
         onLoginSuccess(data.session);
       } else {
-        setMessage('No se pudo iniciar sesión. Verifica tus credenciales.');
-        setMessageType('error');
+        setMessage("No se pudo iniciar sesión. Verifica tus credenciales.");
+        setMessageType("error");
       }
     } catch (error) {
-      console.error('Error en la solicitud de login:', error);
-      setMessage('Ocurrió un error inesperado.');
-      setMessageType('error');
+      console.error("Error en la solicitud de login:", error);
+      setMessage("Ocurrió un error inesperado.");
+      setMessageType("error");
     } finally {
       setLoading(false);
     }
@@ -50,9 +53,15 @@ const Login = ({ onLoginSuccess }) => {
         Iniciar sesión en Modo Desarrollador
       </h2>
 
-      <form onSubmit={handleLogin} className="space-y-6 p-6 border-2 border-green-500 rounded-lg animate-border-pulse">
+      <form
+        onSubmit={handleLogin}
+        className="space-y-6 p-6 border-2 border-green-500 rounded-lg animate-border-pulse"
+      >
         <div>
-          <label htmlFor="email" className="block text-green-400 text-sm font-mono mb-2">
+          <label
+            htmlFor="email"
+            className="block text-green-400 text-sm font-mono mb-2"
+          >
             Correo electrónico:
           </label>
           <input
@@ -67,7 +76,10 @@ const Login = ({ onLoginSuccess }) => {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-green-400 text-sm font-mono mb-2">
+          <label
+            htmlFor="password"
+            className="block text-green-400 text-sm font-mono mb-2"
+          >
             Contraseña:
           </label>
           <input
@@ -86,12 +98,12 @@ const Login = ({ onLoginSuccess }) => {
           disabled={loading}
           className="bg-green-700 hover:bg-green-600 text-white font-pixel py-3 px-6 rounded transition-all duration-300 ease-in-out border border-green-500 w-full disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-green-glow"
         >
-          {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+          {loading ? "Iniciando sesión..." : "Iniciar sesión"}
         </button>
 
         <button
           type="button"
-          onClick={() => navigate('/')}
+          onClick={() => navigate("/")}
           className="bg-gray-800 hover:bg-gray-700 text-white font-pixel py-3 px-6 rounded transition-all duration-300 ease-in-out border border-gray-500 w-full mt-4 hover:shadow-green-glow"
         >
           Volver
@@ -101,7 +113,7 @@ const Login = ({ onLoginSuccess }) => {
       {message && (
         <p
           className={`mt-6 text-center text-lg font-mono ${
-            messageType === 'error' ? 'text-red-500' : 'text-green-400'
+            messageType === "error" ? "text-red-500" : "text-green-400"
           }`}
         >
           {message}
