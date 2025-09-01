@@ -1,37 +1,34 @@
 import React from 'react';
 
-const socialLinks = [
-    { type: 'GitHub', url: '#' },
-    { type: 'LinkedIn', url: '#' },
-    { type: 'Twitter', url: '#' },
-];
-
 const Footer = () => {
-    return (
-        <footer className="py-8 bg-black border-t border-green-500/50">
-            <div className="max-w-5xl mx-auto text-center">
-                <div className="flex justify-center gap-8 mb-4">
-                    {socialLinks.map(link => (
-                        <a 
-                            key={link.type} 
-                            href={link.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-green-400 hover:text-white transition-colors"
-                        >
-                            {link.type}
-                        </a>
-                    ))}
-                </div>
-                <p className="text-sm text-green-700">
-                    &copy; {new Date().getFullYear()} [YOUR NAME]. All rights reserved.
-                </p>
-                <p className="text-xs text-green-900 mt-2">
-                    System Integrity: Nominal. Connection: Secure.
-                </p>
-            </div>
-        </footer>
-    );
+  return (
+    <footer className="relative py-8 px-6 md:px-12 min-h-[200px] overflow-hidden font-mono">
+      {/* CMD-style container */}
+      <div className="relative max-w-6xl w-full mx-auto border border-green-500 bg-black/80 rounded-md shadow-lg overflow-hidden animate-fade-in-scale-up">
+        
+        {/* Header */}
+        <div className="flex justify-between items-center px-6 py-3 bg-black/90 border-b border-green-500">
+          <span className="text-green-400 font-pixel text-base md:text-lg">C:/footer</span>
+          <button className="text-green-400 font-bold hover:text-green-300 text-base md:text-lg">×</button>
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 p-6 md:p-8">
+
+          {/* Derechos de autor y estado del sistema */}
+          <div className="flex flex-col items-center md:items-end text-center md:text-right space-y-1 animate-fade-in-up">
+            <p className="text-green-200 text-sm md:text-base font-mono">
+              &copy; {new Date().getFullYear()} [TU NOMBRE]. Todos los derechos reservados.
+            </p>
+            <p className="text-green-200 text-sm md:text-base font-mono">
+              Integridad del sistema: Nominal. Conexión: Segura.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </footer>
+  );
 };
 
 export default Footer;

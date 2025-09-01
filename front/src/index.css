@@ -1,143 +1,70 @@
+/* Fuentes */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto+Mono:wght@400;700&display=swap');
 @import "tailwindcss";
 
-body {
+/* Reset horizontal overflow */
+body, html {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Elimina scroll horizontal */
   background-color: #000;
-  color: #0f0;
-  font-family: 'Courier New', Courier, monospace;
+  color: #39FF14;
+  font-family: 'Roboto Mono', monospace;
 }
 
-/* Keyframes */
-@keyframes shimmer {
-  0% { background-position: 0 0; }
-  100% { background-position: 160px 80px; }
+/* Fuente pixelada */
+.font-pixel {
+  font-family: 'Press Start 2P', cursive;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+/* Fade-in desde arriba */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
+.animate-fade-in-up { animation: fade-in-up 0.7s ease-out forwards; }
 
-@keyframes scan {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100%); }
+/* Fade-in desde la izquierda */
+@keyframes fade-in-left {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
 }
+.animate-fade-in-left { animation: fade-in-left 0.7s ease-out forwards; }
 
-@keyframes glitch-bg {
-  0% { transform: translate(0, 0); }
-  20% { transform: translate(-2px, 2px); }
-  40% { transform: translate(-2px, -2px); }
-  60% { transform: translate(2px, 2px); }
-  80% { transform: translate(2px, -2px); }
-  100% { transform: translate(0, 0); }
+/* Pulse verde para fondo */
+@keyframes pulse-green {
+  0%,100% { opacity: 0.2; }
+  50% { opacity: 0.35; }
 }
+.animate-pulse-green { animation: pulse-green 3s infinite; }
 
-@keyframes sonar {
-  0% { transform: scale(0.5); opacity: 0.5; } 
-  100% { transform: scale(1.5); opacity: 0; }
+/* Typing effect */
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
 }
-
-/* Animated Backgrounds */
-.experience-bg {
-  background-image: 
-    linear-gradient(rgba(0, 255, 0, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 0, 0.07) 1px, transparent 1px);
-  background-size: 40px 40px;
-  position: relative;
-  animation: shimmer 4s linear infinite;
-}
-
-.skills-bg {
-  background-image: radial-gradient(rgba(0, 255, 0, 0.07) 1px, transparent 1px);
-  background-size: 20px 20px;
-  animation: pulse 8s linear infinite;
-}
-
-.testimonials-bg {
-  position: relative;
+@keyframes blink-caret { 50% { border-color: transparent; } }
+.animate-typing {
   overflow: hidden;
-}
-.testimonials-bg::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: linear-gradient(rgba(0,0,0,0.8) 50%, transparent 50%);
-  background-size: 100% 3px;
-  opacity: 0.1;
-  pointer-events: none;
-}
-.testimonials-bg::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    box-shadow: inset 0 0 120px 30px rgba(0, 255, 0, 0.15);
-    pointer-events: none;
+  white-space: nowrap;
+  display: inline-block;
+  animation: typing 2s steps(20) forwards, blink-caret 0.75s step-end infinite;
 }
 
-.projects-bg {
-  position: relative;
-  overflow: hidden;
+/* Glow hover */
+.hover\:shadow-green-glow:hover {
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.8);
 }
-.projects-bg::before {
-  content: "";
+
+/* Fondo matrix */
+.bg-matrix {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
-  background-image: 
-    linear-gradient(45deg, rgba(0, 255, 0, 0.05) 25%, transparent 25%, transparent 75%, rgba(0, 255, 0, 0.05) 75%, rgba(0, 255, 0, 0.05) 100%),
-    linear-gradient(-45deg, rgba(0, 255, 0, 0.05) 25%, transparent 25%, transparent 75%, rgba(0, 255, 0, 0.05) 75%, rgba(0, 255, 0, 0.05) 100%);
-  background-size: 60px 60px;
-  animation: glitch-bg 5s infinite alternate;
-  opacity: 0.3;
+  background: url('/src/assets/matrix-bg.png') center/cover no-repeat;
+  opacity: 0.15;
+  z-index: 0;
   pointer-events: none;
 }
 
-.contact-bg {
-  position: relative;
-  overflow: hidden;
-}
-.contact-bg::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  border: 2px solid rgba(0, 255, 0, 0.5);
-  transform: translate(-50%, -50%);
-  animation: sonar 3s infinite ease-out;
-  pointer-events: none;
-}
-.contact-bg::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  border: 2px solid rgba(0, 255, 0, 0.3);
-  transform: translate(-50%, -50%);
-  animation: sonar 3s infinite ease-out 1s; /* Delayed */
-  pointer-events: none;
-}
-
-/* Hover Effects */
-.project-card:hover .scan-line {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to bottom, rgba(0, 255, 0, 0) 0%, rgba(0, 255, 0, 0.2) 50%, rgba(0, 255, 0, 0) 100%);
-  animation: scan 2.5s linear infinite;
-  opacity: 0.7;
-}

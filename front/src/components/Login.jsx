@@ -1,80 +1,112 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Login = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('info'); // 'success', 'error', 'info'
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
+    setMessageType('info');
 
     try {
       const response = await fetch('http://localhost:3000/api/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setMessage(`Error: ${data.error || 'Login failed'}`);
+        setMessage(`Error: ${data.error || 'Error al iniciar sesión'}`);
+        setMessageType('error');
       } else if (data.user) {
-        setMessage('Logged in successfully!');
+        setMessage('¡Inicio de sesión exitoso!');
+        setMessageType('success');
         onLoginSuccess(data.session);
       } else {
-        setMessage('Login failed. Please check your credentials.');
+        setMessage('No se pudo iniciar sesión. Verifica tus credenciales.');
+        setMessageType('error');
       }
     } catch (error) {
-      console.error('Login fetch error:', error);
-      setMessage('An unexpected error occurred.');
+      console.error('Error en la solicitud de login:', error);
+      setMessage('Ocurrió un error inesperado.');
+      setMessageType('error');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-green-400">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md border border-green-500">
-        <h2 className="text-3xl font-bold mb-6 text-center">Login to Matrix Portfolio</h2>
-        <form onSubmit={handleLogin}>
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium mb-2">Email:</label>
-            <input
-              type="email"
-              id="email"
-              className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 text-white"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="mb-6">
-            <label htmlFor="password" className="block text-sm font-medium mb-2">Password:</label>
-            <input
-              type="password"
-              id="password"
-              className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 text-white"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75"
-            disabled={loading}
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-        {message && <p className="mt-4 text-center text-sm">{message}</p>}
-      </div>
+    <div className="bg-black/90 text-green-400 p-8 rounded-lg shadow-2xl border border-green-500 w-11/12 md:w-1/2 lg:w-1/3 mx-auto my-16 animate-fade-in-up">
+      <h2 className="text-green-400 text-3xl sm:text-2xl font-pixel mb-6 text-center transition-all duration-300 hover:animate-glitch">
+        Iniciar sesión en Modo Desarrollador
+      </h2>
+
+      <form onSubmit={handleLogin} className="space-y-6 p-6 border-2 border-green-500 rounded-lg animate-border-pulse">
+        <div>
+          <label htmlFor="email" className="block text-green-400 text-sm font-mono mb-2">
+            Correo electrónico:
+          </label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            placeholder="tu.correo@ejemplo.com"
+            className="bg-black/80 text-green-400 border border-green-700 p-3 rounded w-full focus:outline-none focus:border-green-400 placeholder-green-600 transition-all duration-300"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="password" className="block text-green-400 text-sm font-mono mb-2">
+            Contraseña:
+          </label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            placeholder="********"
+            className="bg-black/80 text-green-400 border border-green-700 p-3 rounded w-full focus:outline-none focus:border-green-400 placeholder-green-600 transition-all duration-300"
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-green-700 hover:bg-green-600 text-white font-pixel py-3 px-6 rounded transition-all duration-300 ease-in-out border border-green-500 w-full disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-green-glow"
+        >
+          {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="bg-gray-800 hover:bg-gray-700 text-white font-pixel py-3 px-6 rounded transition-all duration-300 ease-in-out border border-gray-500 w-full mt-4 hover:shadow-green-glow"
+        >
+          Volver
+        </button>
+      </form>
+
+      {message && (
+        <p
+          className={`mt-6 text-center text-lg font-mono ${
+            messageType === 'error' ? 'text-red-500' : 'text-green-400'
+          }`}
+        >
+          {message}
+        </p>
+      )}
     </div>
   );
 };

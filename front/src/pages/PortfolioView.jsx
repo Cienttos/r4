@@ -8,88 +8,53 @@ import Testimonials from '../components/Testimonials';
 import Contact from '../components/Contact';
 import Footer from '../components/Footer';
 
-// Thematic Loading Indicator
+// Indicador de carga temático
 const LoadingIndicator = () => (
-  <div className="h-screen flex flex-col items-center justify-center text-green-400 text-4xl font-mono">
-    <pre className="animate-pulse">
-{`
-  _  _ ____ _  _ ____ ____ _  _ ____ 
-  |\/| |__| |\ | | __ |___ |\ | |__| 
-  |  | |  | | \| |__] |___ | \| |  | 
-                                   
-`}
-    </pre>
-    <p className="mt-4">Loading Resources...</p>
+  <div className="h-screen flex flex-col items-center justify-center text-green-400 text-4xl font-mono bg-black">
+    <p className="mt-4 text-2xl font-pixel animate-pulse-green">Cargando recursos...</p>
   </div>
 );
 
-// Thematic Error Display
+// Pantalla de error temática
 const ErrorDisplay = ({ message }) => (
-  <div className="h-screen flex flex-col items-center justify-center text-red-500 text-4xl font-mono">
-    <pre className="animate-bounce">
-{`
-  ____ ____ _  _ ____ ____ _  _ ____ 
-  |__| |  | |\ | | __ |___ |\ | |__| 
-  |  | |__| | \| |__] |___ | \| |  | 
-                                   
-`}
-    </pre>
-    <p className="mt-4">ERROR: {message}</p>
-    <p className="text-xl mt-2">Please check API or use Dev Mode.</p>
+  <div className="h-screen flex flex-col items-center justify-center text-red-600 text-4xl font-mono bg-black animate-shake">
+    <p className="mt-4 text-2xl font-pixel">ERROR: {message}</p>
+    <p className="text-xl mt-2 text-gray-400 font-mono">Por favor revisa la API o utiliza el Modo Desarrollador.</p>
   </div>
 );
 
-const PortfolioView = ({ portfolioData, loading, error, isLoggedIn, handleLogout, navigate, fetchPortfolioData }) => {
+const PortfolioView = ({
+  portfolioData,
+  loading,
+  error,
+  isLoggedIn,
+  handleLogout,
+  navigate,
+  fetchPortfolioData
+}) => {
   useEffect(() => {
     fetchPortfolioData();
-  }, []); // Fetch data when component mounts
+  }, []);
 
-  if (loading) {
-    return <LoadingIndicator />;
-  }
-
-  if (error) {
-    return <ErrorDisplay message={error.message} />;
-  }
-
-  if (!portfolioData) {
-    return <ErrorDisplay message="No data loaded. API might be down or empty." />;
-  }
+  if (loading) return <LoadingIndicator />;
+  if (error) return <ErrorDisplay message={error.message} />;
+  if (!portfolioData) return <ErrorDisplay message="No se cargaron datos. La API podría estar caída o vacía." />;
 
   return (
-    <>
+    <section className="relative w-full min-h-screen overflow-x-hidden font-mono">
+      {/* Fondo Matrix global */}
       <MatrixBackground />
-      <main className="relative z-10">
-        <button
-          onClick={() => navigate('/')}
-          className="fixed top-4 left-4 z-50 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-500"
-        >
-          Back to Home
-        </button>
-        {/* Dev Mode Toggle Button */}
-        <button
-          onClick={() => {
-            if (isLoggedIn) {
-              navigate('/devmode');
-            } else {
-              navigate('/login');
-            }
-          }}
-          className="fixed top-4 right-4 z-50 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-500"
-        >
-          {isLoggedIn ? 'Dev Mode' : 'Login for Dev Mode'}
-        </button>
 
-        {/* Logout Button */}
-        {isLoggedIn && (
-          <button
-            onClick={handleLogout}
-            className="fixed top-4 right-36 z-50 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-500"
-          >
-            Logout
-          </button>
-        )}
+      {/* Botón volver al inicio */}
+      <button
+        onClick={() => navigate('/')}
+        className="fixed top-4 left-4 z-50 px-6 py-3 bg-black/80 text-green-400 rounded border-2 border-green-500 font-pixel hover:shadow-green-glow hover:bg-black/90 transition-all duration-300"
+      >
+        Volver al inicio
+      </button>
 
+      {/* Main con secciones más cercanas */}
+      <main className="relative z-10 flex flex-col space-y-12 md:space-y-16 px-4 md:px-12">
         <Hero personalInfo={portfolioData.personal_info} />
         <Experience experience={portfolioData.experience} />
         <Projects projects={portfolioData.projects} />
@@ -98,7 +63,7 @@ const PortfolioView = ({ portfolioData, loading, error, isLoggedIn, handleLogout
         <Contact socialLinks={portfolioData.social_links} />
         <Footer />
       </main>
-    </>
+    </section>
   );
 };
 
