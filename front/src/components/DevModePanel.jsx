@@ -54,7 +54,7 @@ const DevModePanel = ({ onClose, authToken, onLogout }) => {
     if (authToken) options.headers['Authorization'] = `Bearer ${authToken}`;
     if (body) options.body = JSON.stringify(body);
 
-    const response = await fetch(`http://localhost:3000/api/data/${endpoint}`, options);
+    const response = await fetch(`https://r4-seven-one.vercel.app/api/data/${endpoint}`, options);
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Error de API (${endpoint}): ${response.status} ${response.statusText} - ${errorText}`);
