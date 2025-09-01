@@ -5,6 +5,9 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default async function handler(req, res) {
+  console.log('--- NEW LOGIN REQUEST ---');
+  console.log('--- THIS IS THE CORRECT CODE ---');
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -29,8 +32,10 @@ export default async function handler(req, res) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
+    console.error('Supabase error:', error);
     return res.status(401).json({ error: error.message });
   }
 
+  console.log('Supabase response:', data);
   return res.status(200).json(data);
 }
