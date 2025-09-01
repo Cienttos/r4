@@ -11,18 +11,12 @@ export default async function handler(req, res) {
   // 1. Aplica CORS y maneja la solicitud OPTIONS
   if (applyCors(req, res)) return;
 
-  // 2. Autentica el token JWT
-  const user = authenticate(req);
-  if (!user) {
-    return res.status(401).json({ error: 'Token inválido o no proporcionado' });
-  }
-
-  // El nombre de la tabla viene del nombre del archivo: /api/data/projects -> req.query.tableName = 'projects'
   const { tableName } = req.query;
 
-  // 3. Enruta según el método HTTP
+  // 2. Enruta según el método HTTP
   switch (req.method) {
     case 'GET':
+      // RUTA PÚBLICA: No se necesita autenticación para leer los datos.
       try {
         const { data, error } = await supabase.from(tableName).select('*');
         if (error) throw error;
@@ -32,6 +26,12 @@ export default async function handler(req, res) {
       }
 
     case 'POST':
+      // RUTA PROTEGIDA: Se necesita autenticación para crear datos.
+      const user = authenticate(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Token inválido o no proporcionado' });
+      }
+
       try {
         const { data, error } = await supabase.from(tableName).insert([req.body]).select();
         if (error) throw error;
