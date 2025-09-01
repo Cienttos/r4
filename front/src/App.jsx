@@ -65,7 +65,7 @@ function App() {
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/data/projects`, { headers }),
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/data/skills`, { headers }),
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/data/social_links`, { headers }),
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/data/testimonials`, { headers }),
+        fetch(`https://r4-seven.vercel.app/api/data/testimonials`, { headers }),
       ]);
 
       if (!personalInfoResponse.ok) throw new Error(`Error HTTP ${personalInfoResponse.status} para personal_info`);
