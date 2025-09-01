@@ -27,7 +27,7 @@ export default async function handler(req, res) {
 
     case 'POST':
       // RUTA PROTEGIDA: Se necesita autenticación para crear datos.
-      const user = authenticate(req);
+      const user = await authenticate(req);
       if (!user) {
         return res.status(401).json({ error: 'Token inválido o no proporcionado' });
       }

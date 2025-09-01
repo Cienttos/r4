@@ -1,27 +1,26 @@
-import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from './config.js';
+import { supabase } from './config.js';
 
 /**
- * Verifica el token JWT de la cabecera de autorización.
- * @param {import('http').IncomingMessage} req - El objeto de solicitud.
- * @returns {object|null} - El payload del usuario si el token es válido, o null si no lo es.
+ * Verifica el token JWT de la cabecera de autorización usando Supabase.
+ * @param {import('@vercel/node').VercelRequest} req - El objeto de solicitud.
+ * @returns {Promise<object|null>} - El payload del usuario si el token es válido, o null si no lo es.
  */
-export function authenticate(req) {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return null;
-    }
-
-    const token = authHeader.split(' ')[1];
-    if (!token) {
-      return null;
-    }
-
-    // Verifica el token y devuelve el payload decodificado
-    return jwt.verify(token, JWT_SECRET);
-  } catch (error) {
-    // Si hay un error en la verificación (token expirado, inválido, etc.)
+export async function authenticate(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
     return null;
   }
+
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return null;
+  }
+
+  const { data, error } = await supabase.auth.getUser(token);
+
+  if (error) {
+    return null;
+  }
+
+  return data.user;
 }

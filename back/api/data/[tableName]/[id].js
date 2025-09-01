@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   if (applyCors(req, res)) return;
 
   // 2. Autentica el token JWT
-  const user = authenticate(req);
+  const user = await authenticate(req);
   if (!user) {
     return res.status(401).json({ error: 'Token inválido o no proporcionado' });
   }
