@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
 
 const app = express();
 
@@ -32,30 +31,18 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// --- Simulación de Datos de Usuario (para login) ---
-const users = [
-  { id: 1, email: 'test@example.com', passwordHash: bcrypt.hashSync('password123', 10) },
-];
-
 // --- Rutas ---
 
 // Ruta de Autenticación: /api/auth/login
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-  const user = users.find(u => u.email === email);
-  if (!user) {
-    return res.status(400).json({ error: 'Credenciales inválidas' });
+  if (error) {
+    return res.status(400).json({ error: error.message });
   }
 
-  const isPasswordValid = bcrypt.compareSync(password, user.passwordHash);
-  if (!isPasswordValid) {
-    return res.status(400).json({ error: 'Credenciales inválidas' });
-  }
-
-  const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
-
-  res.status(200).json({ message: 'Inicio de sesión exitoso', token });
+  res.status(200).json(data);
 });
 
 // Rutas de Datos: /api/data/:tableName (Protegidas)
