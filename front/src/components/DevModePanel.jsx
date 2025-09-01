@@ -51,6 +51,7 @@ const DevModePanel = ({ onClose, authToken, onLogout }) => {
   const snackbarRef = useRef(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const crudTableEditorRef = useRef(null);
 
   const callApi = async (method, endpoint, body = null) => {
     const options = { method, headers: { 'Content-Type': 'application/json' } };
@@ -68,7 +69,28 @@ const DevModePanel = ({ onClose, authToken, onLogout }) => {
     return response.json();
   };
 
-  const CrudTableEditor = ({ tableName }) => {
+  const handleDeleteItem = (id) => {
+    setItemToDelete(id);
+    setIsModalOpen(true);
+  };
+
+  const confirmDeleteItem = async () => {
+    if (!itemToDelete) return;
+    try {
+      await callApi('DELETE', `${activeTab}/${itemToDelete}`);
+      snackbarRef.current.show('Elemento eliminado', 'success');
+      if (crudTableEditorRef.current) {
+        crudTableEditorRef.current.fetchItems();
+      }
+    } catch (e) {
+      snackbarRef.current.show('Error: ' + e.message, 'error');
+    } finally {
+      setIsModalOpen(false);
+      setItemToDelete(null);
+    }
+  };
+
+  const CrudTableEditor = React.forwardRef(({ tableName, onDeleteItem }, ref) => {
     const [items, setItems] = useState([]);
     const [formData, setFormData] = useState({});
     const [isEditing, setIsEditing] = useState(false);
@@ -76,75 +98,117 @@ const DevModePanel = ({ onClose, authToken, onLogout }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    useEffect(() => { fetchItems(); }, [tableName]);
-
     const fetchItems = async () => {
-      setLoading(true); setError(null);
-      try { const data = await callApi('GET', tableName); setItems(data); }
-      catch (e) { setError(e); console.error(e); snackbarRef.current.show('Error: '+e.message,'error'); }
-      finally { setLoading(false); }
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await callApi('GET', tableName);
+        setItems(data);
+      } catch (e) {
+        setError(e);
+        console.error(e);
+        snackbarRef.current.show('Error: ' + e.message, 'error');
+      } finally {
+        setLoading(false);
+      }
     };
+
+    React.useImperativeHandle(ref, () => ({
+      fetchItems,
+    }));
+
+    useEffect(() => {
+      fetchItems();
+    }, [tableName]);
 
     const handleInputChange = (e) => {
       const { name, value } = e.target;
-      const fieldType = tableSchemas[tableName].find(f => f.name === name)?.type;
-      if (fieldType === 'array') setFormData({ ...formData, [name]: value.split(',').map(v => v.trim()) });
-      else if (fieldType === 'number') setFormData({ ...formData, [name]: Number(value) });
-      else setFormData({ ...formData, [name]: value });
+      const fieldType = tableSchemas[tableName].find((f) => f.name === name)?.type;
+      if (fieldType === 'array') {
+        setFormData({ ...formData, [name]: value.split(',').map((v) => v.trim()) });
+      } else if (fieldType === 'number') {
+        setFormData({ ...formData, [name]: Number(value) });
+      } else {
+        setFormData({ ...formData, [name]: value });
+      }
     };
 
     const handleAddItem = () => {
-      setIsEditing(true); setEditingItemId(null);
+      setIsEditing(true);
+      setEditingItemId(null);
       const initialData = {};
-      tableSchemas[tableName].forEach(f => initialData[f.name] = f.type === 'array' ? [] : '');
+      tableSchemas[tableName].forEach((f) => (initialData[f.name] = f.type === 'array' ? [] : ''));
       setFormData(initialData);
     };
 
     const handleEditItem = (item) => {
-      setIsEditing(true); setEditingItemId(item.id);
+      setIsEditing(true);
+      setEditingItemId(item.id);
       const itemCopy = { ...item };
-      tableSchemas[tableName].forEach(f => { if(f.type==='array' && Array.isArray(itemCopy[f.name])) itemCopy[f.name] = itemCopy[f.name].join(', '); });
+      tableSchemas[tableName].forEach((f) => {
+        if (f.type === 'array' && Array.isArray(itemCopy[f.name])) {
+          itemCopy[f.name] = itemCopy[f.name].join(', ');
+        }
+      });
       setFormData(itemCopy);
     };
 
-    const handleDeleteItem = (id) => {
-      setItemToDelete(id);
-      setIsModalOpen(true);
-    };
-
-    const confirmDeleteItem = async () => {
-      if (!itemToDelete) return;
-      setLoading(true); setError(null);
-      try { await callApi('DELETE', `${tableName}/${itemToDelete}`); snackbarRef.current.show('Elemento eliminado', 'success'); fetchItems(); }
-      catch(e){ setError(e); snackbarRef.current.show('Error: '+e.message,'error'); }
-      finally { setLoading(false); setIsModalOpen(false); setItemToDelete(null); }
-    };
-
     const handleSaveItem = async (e) => {
-      e.preventDefault(); setLoading(true); setError(null);
+      e.preventDefault();
+      setLoading(true);
+      setError(null);
       try {
-        if (isEditing && editingItemId) await callApi('PUT', `${tableName}/${editingItemId}`, formData);
-        else await callApi('POST', tableName, formData);
-        snackbarRef.current.show('Guardado correctamente','success'); setIsEditing(false); setEditingItemId(null); setFormData({}); fetchItems();
-      } catch(e){ setError(e); snackbarRef.current.show('Error: '+e.message,'error'); } 
-      finally { setLoading(false); }
+        if (isEditing && editingItemId) {
+          await callApi('PUT', `${tableName}/${editingItemId}`, formData);
+        } else {
+          await callApi('POST', tableName, formData);
+        }
+        snackbarRef.current.show('Guardado correctamente', 'success');
+        setIsEditing(false);
+        setEditingItemId(null);
+        setFormData({});
+        fetchItems();
+      } catch (e) {
+        setError(e);
+        snackbarRef.current.show('Error: ' + e.message, 'error');
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const renderFormFields = () => tableSchemas[tableName].map(field => {
-      const commonProps = { name: field.name, value: formData[field.name]||'', onChange: handleInputChange };
-      let inputElement;
-      switch(field.type){
-        case 'textarea': inputElement=<textarea {...commonProps} rows="4" className="bg-black/80 text-green-400 border border-green-500 p-2 rounded w-full focus:outline-none focus:border-green-400 placeholder-green-700"></textarea>; break;
-        case 'date': inputElement=<input type="date" {...commonProps} value={formData[field.name]?new Date(formData[field.name]).toISOString().split('T')[0]:''} className="bg-black/80 text-green-400 border border-green-500 p-2 rounded w-full focus:outline-none focus:border-green-400 placeholder-green-700"/>; break;
-        case 'number': inputElement=<input type="number" {...commonProps} className="bg-black/80 text-green-400 border border-green-500 p-2 rounded w-full focus:outline-none focus:border-green-400 placeholder-green-700"/>; break;
-        case 'array': inputElement=<input type="text" {...commonProps} placeholder="Valores separados por comas" className="bg-black/80 text-green-400 border border-green-500 p-2 rounded w-full focus:outline-none focus:border-green-400 placeholder-green-700"/>; break;
-        default: inputElement=<input type="text" {...commonProps} className="bg-black/80 text-green-400 border border-green-500 p-2 rounded w-full focus:outline-none focus:border-green-400 placeholder-green-700"/>;
-      }
-      return (<div key={field.name} className="mb-4"><label className="block text-green-400 text-sm font-bold mb-2">{field.label || field.name}{field.required && <span className="text-red-500">*</span>}</label>{inputElement}</div>);
-    });
+    const renderFormFields = () =>
+      tableSchemas[tableName].map((field) => {
+        const commonProps = { name: field.name, value: formData[field.name] || '', onChange: handleInputChange };
+        let inputElement;
+        switch (field.type) {
+          case 'textarea':
+            inputElement = <textarea {...commonProps} rows="4" className="bg-black/80 text-green-400 border border-green-500 p-2 rounded w-full focus:outline-none focus:border-green-400 placeholder-green-700"></textarea>;
+            break;
+          case 'date':
+            inputElement = <input type="date" {...commonProps} value={formData[field.name] ? new Date(formData[field.name]).toISOString().split('T')[0] : ''} className="bg-black/80 text-green-400 border border-green-500 p-2 rounded w-full focus:outline-none focus:border-green-400 placeholder-green-700" />;
+            break;
+          case 'number':
+            inputElement = <input type="number" {...commonProps} className="bg-black/80 text-green-400 border border-green-500 p-2 rounded w-full focus:outline-none focus:border-green-400 placeholder-green-700" />;
+            break;
+          case 'array':
+            inputElement = <input type="text" {...commonProps} placeholder="Valores separados por comas" className="bg-black/80 text-green-400 border border-green-500 p-2 rounded w-full focus:outline-none focus:border-green-400 placeholder-green-700" />;
+            break;
+          default:
+            inputElement = <input type="text" {...commonProps} className="bg-black/80 text-green-400 border border-green-500 p-2 rounded w-full focus:outline-none focus:border-green-400 placeholder-green-700" />;
+        }
+        return (
+          <div key={field.name} className="mb-4">
+            <label className="block text-green-400 text-sm font-bold mb-2">
+              {field.label || field.name}
+              {field.required && <span className="text-red-500">*</span>}
+            </label>
+            {inputElement}
+          </div>
+        );
+      });
 
-    if(loading) return <p className="text-yellow-400">Cargando {tableName}...</p>;
-    if(error) return <p className="text-red-500">Error: {error.message}</p>;
+    if (loading) return <p className="text-yellow-400">Cargando {tableName}...</p>;
+    if (error) return <p className="text-red-500">Error: {error.message}</p>;
 
     return (
       <div className="bg-black/90 p-4 rounded-lg border border-green-500 mt-4 animate-fade-in-scale-up">
@@ -152,28 +216,32 @@ const DevModePanel = ({ onClose, authToken, onLogout }) => {
 
         {!isEditing && <button onClick={handleAddItem} className="bg-green-700 hover:bg-green-600 text-white py-2 px-4 rounded border border-green-500 mb-4 transition">Agregar {tableName}</button>}
 
-        {isEditing && <form onSubmit={handleSaveItem} className="mb-4">
-          <h4 className="text-green-500 text-md mb-4">{editingItemId?'Editar':'Agregar'} elemento</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">{renderFormFields()}</div>
-          <div>
-            <button type="submit" className="bg-green-700 hover:bg-green-600 text-white py-2 px-4 rounded border border-green-500 mr-2 transition">Guardar</button>
-            <button type="button" onClick={()=>setIsEditing(false)} className="bg-gray-800 hover:bg-gray-700 text-white py-2 px-4 rounded border border-gray-500 transition">Cancelar</button>
-          </div>
-        </form>}
-
-        {!isEditing && items.length>0 && items.map(item=>(
-          <div key={item.id} className="bg-black/80 p-3 mb-2 rounded border border-green-500 flex justify-between items-center">
-            <span className="text-green-300 sm:text-sm">{item.full_name||item.title||item.name||item.message||JSON.stringify(item)}</span>
+        {isEditing && (
+          <form onSubmit={handleSaveItem} className="mb-4">
+            <h4 className="text-green-500 text-md mb-4">{editingItemId ? 'Editar' : 'Agregar'} elemento</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">{renderFormFields()}</div>
             <div>
-              <button onClick={()=>handleEditItem(item)} className="bg-green-700 hover:bg-green-600 text-white py-1 px-2 rounded border border-green-500 text-sm ml-2 transition">Editar</button>
-              <button onClick={()=>handleDeleteItem(item.id)} className="bg-red-700 hover:bg-red-600 text-white py-1 px-2 rounded border border-red-500 text-sm ml-2 transition">Eliminar</button>
+              <button type="submit" className="bg-green-700 hover:bg-green-600 text-white py-2 px-4 rounded border border-green-500 mr-2 transition">Guardar</button>
+              <button type="button" onClick={() => setIsEditing(false)} className="bg-gray-800 hover:bg-gray-700 text-white py-2 px-4 rounded border border-gray-500 transition">Cancelar</button>
             </div>
-          </div>
-        ))}
-        {!isEditing && items.length===0 && <p className="text-gray-500 mt-4">No hay elementos para mostrar.</p>}
+          </form>
+        )}
+
+        {!isEditing &&
+          items.length > 0 &&
+          items.map((item) => (
+            <div key={item.id} className="bg-black/80 p-3 mb-2 rounded border border-green-500 flex justify-between items-center">
+              <span className="text-green-300 sm:text-sm">{item.full_name || item.title || item.name || item.message || JSON.stringify(item)}</span>
+              <div>
+                <button onClick={() => handleEditItem(item)} className="bg-green-700 hover:bg-green-600 text-white py-1 px-2 rounded border border-green-500 text-sm ml-2 transition">Editar</button>
+                <button onClick={() => onDeleteItem(item.id)} className="bg-red-700 hover:bg-red-600 text-white py-1 px-2 rounded border border-red-500 text-sm ml-2 transition">Eliminar</button>
+              </div>
+            </div>
+          ))}
+        {!isEditing && items.length === 0 && <p className="text-gray-500 mt-4">No hay elementos para mostrar.</p>}
       </div>
     );
-  };
+  });
 
   return (
     <div className="bg-black/90 text-green-400 font-mono p-4 rounded-lg shadow-lg border border-green-500 w-11/12 md:w-3/4 lg:w-1/2 mx-auto my-8 animate-fade-in-scale-up">
@@ -186,24 +254,22 @@ const DevModePanel = ({ onClose, authToken, onLogout }) => {
       </div>
 
       <div className="mb-4 flex flex-wrap">
-        {['personal_info','experience','projects','skills','social_links','testimonials'].map(tab=>(
-          <button key={tab} onClick={()=>setActiveTab(tab)}
-            className={`mr-2 mb-2 py-2 px-4 rounded border border-green-500 transition ${activeTab===tab?'bg-green-500 text-black':'bg-green-700 hover:bg-green-600 text-white'} sm:text-sm`}>
+        {['personal_info', 'experience', 'projects', 'skills', 'social_links', 'testimonials'].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`mr-2 mb-2 py-2 px-4 rounded border border-green-500 transition ${activeTab === tab ? 'bg-green-500 text-black' : 'bg-green-700 hover:bg-green-600 text-white'} sm:text-sm`}
+          >
             {tab}
           </button>
         ))}
       </div>
 
       <div key={activeTab} className="transition-opacity duration-500 ease-in-out opacity-100">
-        <CrudTableEditor tableName={activeTab} />
+        <CrudTableEditor ref={crudTableEditorRef} tableName={activeTab} onDeleteItem={handleDeleteItem} />
       </div>
       <Snackbar ref={snackbarRef} />
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onConfirm={confirmDeleteItem} 
-        title="Confirmar Eliminación"
-      >
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={confirmDeleteItem} title="Confirmar Eliminación">
         <p>¿Estás seguro de que deseas eliminar este elemento?</p>
       </Modal>
     </div>
