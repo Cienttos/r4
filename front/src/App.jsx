@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 
 import MatrixBackground from './components/MatrixBackground';
 import Hero from './components/Hero';
@@ -8,8 +9,10 @@ import Skills from './components/Skills';
 import Testimonials from './components/Testimonials';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
-import DevModePanel from './components/DevModePanel'; // New import
-import Login from './components/Login'; // Import Login component
+import DevModePanel from './components/DevModePanel';
+import Login from './components/Login';
+import InitialChoice from './pages/InitialChoice';
+import PortfolioView from './pages/PortfolioView'; // Import PortfolioView
 
 // Thematic Loading Indicator
 const LoadingIndicator = () => (
@@ -44,11 +47,11 @@ const ErrorDisplay = ({ message }) => (
 
 function App() {
   const [portfolioData, setPortfolioData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // State for user login status
-  const [authToken, setAuthToken] = useState(null); // State for authentication token
-  const [currentView, setCurrentView] = useState('initial'); // New state for managing views
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authToken, setAuthToken] = useState(null);
+  const navigate = useNavigate();
 
   // Effect to check for existing token in localStorage on initial load
   useEffect(() => {
@@ -56,24 +59,18 @@ function App() {
     if (storedToken) {
       setAuthToken(storedToken);
       setIsLoggedIn(true);
-      setCurrentView('portfolio'); 
-      fetchData(); // Fetch data immediately if logged in
-    } else {
-      setLoading(false); // If not logged in, stop loading and show initial view
     }
   }, []);
 
-  // Effect for data fetching
-  const fetchData = async () => {
+  // Function to fetch portfolio data
+  const fetchPortfolioData = async () => {
     setLoading(true);
     setError(null);
     try {
       const headers = {
         'Content-Type': 'application/json',
       };
-      if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`;
-      }
+      // No Authorization header for public data fetch
 
       const [
         personalInfoResponse,
@@ -121,18 +118,11 @@ function App() {
     }
   };
 
-  const handleSaveDevData = (data) => {
-    setPortfolioData(data);
-    setLoading(false);
-    setError(null); // Clear any previous errors
-    setCurrentView('portfolio'); // After saving, go back to portfolio view
-  };
-
   const handleLoginSuccess = (session) => {
     setIsLoggedIn(true);
     setAuthToken(session.access_token);
     localStorage.setItem('supabase.auth.token', session.access_token);
-    setCurrentView('devmode'); // Redirect to devmode after successful login
+    navigate('/devmode'); // Redirect to devmode after successful login
   };
 
   const handleLogout = () => {
@@ -140,137 +130,43 @@ function App() {
     setAuthToken(null);
     localStorage.removeItem('supabase.auth.token');
     setPortfolioData(null); // Clear data on logout
-    setLoading(false);
-    setCurrentView('initial'); // Go back to initial view on logout
+    navigate('/'); // Go back to initial choice on logout
   };
 
-  // Conditional rendering based on currentView
-  if (currentView === 'initial') {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center text-green-400 text-4xl font-mono">
-        <MatrixBackground />
-        <h1 className="text-6xl mb-8 animate-pulse">Welcome</h1>
-        <div className="flex space-x-4">
-          <button
-            onClick={() => setCurrentView('login')}
-            className="px-8 py-4 bg-blue-700 text-white rounded hover:bg-blue-500 text-2xl"
-          >
-            Dev Mode
-          </button>
-          <button
-            onClick={() => {
-              setCurrentView('portfolio');
-              fetchData();
-            }}
-            className="px-8 py-4 bg-green-700 text-white rounded hover:bg-green-500 text-2xl"
-          >
-            View Portfolio
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (currentView === 'login') {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center text-green-400 text-4xl font-mono">
-        <button
-          onClick={() => setCurrentView('initial')}
-          className="fixed top-4 left-4 z-50 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-500"
-        >
-          Back
-        </button>
-        <Login onLoginSuccess={handleLoginSuccess} />
-      </div>
-    );
-  }
-
-  if (loading && currentView === 'portfolio') { // Show loading only if in portfolio view and loading
-    return <LoadingIndicator />;
-  }
-
-  if (error) {
-    return <ErrorDisplay message={error.message} />;
-  }
-
-  if (currentView === 'devmode') {
-    if (!isLoggedIn) {
-      // If somehow in devmode view without being logged in, redirect to login
-      setCurrentView('login');
-      return null; // Or a loading indicator while redirecting
-    }
-    return (
-      <>
-        <button
-          onClick={() => setCurrentView('portfolio')}
-          className="fixed top-4 left-4 z-50 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-500"
-        >
-          Back
-        </button>
-        <DevModePanel onClose={() => setCurrentView('portfolio')} onSave={handleSaveDevData} authToken={authToken} />
-        <button
-          onClick={handleLogout}
-          className="fixed top-4 right-4 z-50 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-500"
-        >
-          Logout
-        </button>
-      </>
-    );
-  }
-
-  if (currentView === 'portfolio') {
-    // If no data and in portfolio view, it means fetch failed or returned empty
-    if (!portfolioData) {
-      return <ErrorDisplay message="No data loaded. API might be down or empty." />;
-    }
-
-    return (
-      <>
-        <MatrixBackground />
-        <main className="relative z-10">
-          <button
-            onClick={() => setCurrentView('initial')}
-            className="fixed top-4 left-4 z-50 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-500"
-          >
-            Back
-          </button>
-          {/* Dev Mode Toggle Button */}
-          <button
-            onClick={() => {
-              if (isLoggedIn) {
-                setCurrentView('devmode');
-              } else {
-                setCurrentView('login');
-              }
-            }}
-            className="fixed top-4 right-4 z-50 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-500"
-          >
-            {isLoggedIn ? 'Dev Mode' : 'Login for Dev Mode'}
-          </button>
-
-          {/* Logout Button */}
-          {isLoggedIn && (
-            <button
-              onClick={handleLogout}
-              className="fixed top-4 right-36 z-50 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-500"
-            >
-              Logout
-            </button>
-          )}
-
-          <Hero personalInfo={portfolioData.personal_info} />
-          <Experience experience={portfolioData.experience} />
-          <Projects projects={portfolioData.projects} />
-          <Skills skills={portfolioData.skills} />
-          <Testimonials testimonials={portfolioData.testimonials} />
-          <Contact socialLinks={portfolioData.social_links} />
-          <Footer />
-        </main>
-      </>
-    );
-  }
-
-  return null; // Should not reach here
+  return (
+    <Routes>
+      <Route path="/" element={<InitialChoice />} />
+      <Route
+        path="/portfolio"
+        element={
+          <PortfolioView
+            portfolioData={portfolioData}
+            loading={loading}
+            error={error}
+            isLoggedIn={isLoggedIn}
+            handleLogout={handleLogout}
+            navigate={navigate}
+            fetchPortfolioData={fetchPortfolioData}
+          />
+        }
+      />
+      <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+      <Route
+        path="/devmode"
+        element={
+          isLoggedIn ? (
+            <DevModePanel
+              authToken={authToken}
+              onClose={() => navigate('/portfolio')}
+              onLogout={handleLogout}
+            />
+          ) : (
+            <Login onLoginSuccess={handleLoginSuccess} />
+          )
+        }
+      />
+    </Routes>
+  );
 }
 
 export default App;
