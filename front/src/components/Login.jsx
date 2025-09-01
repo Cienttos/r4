@@ -30,12 +30,12 @@ const Login = ({ onLoginSuccess }) => {
       if (!response.ok) {
         setMessage(`Error: ${data.error || "Error al iniciar sesión"}`);
         setMessageType("error");
-      } else if (data.user) {
+      } else if (data.token) {
         setMessage("¡Inicio de sesión exitoso!");
         setMessageType("success");
-        onLoginSuccess(data.session);
+        onLoginSuccess(data.token);
       } else {
-        setMessage("No se pudo iniciar sesión. Verifica tus credenciales.");
+        setMessage("No se pudo iniciar sesión. La respuesta del servidor no contenía un token.");
         setMessageType("error");
       }
     } catch (error) {

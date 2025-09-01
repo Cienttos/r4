@@ -127,10 +127,10 @@ function App() {
     }
   };
 
-  const handleLoginSuccess = (session) => {
+  const handleLoginSuccess = (token) => {
     setIsLoggedIn(true);
-    setAuthToken(session.access_token);
-    localStorage.setItem("supabase.auth.token", session.access_token);
+    setAuthToken(token);
+    localStorage.setItem("supabase.auth.token", token);
     navigate("/devmode");
   };
 
