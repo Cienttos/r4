@@ -33,7 +33,11 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: error.message });
       }
 
-      return res.status(200).json(data);
+      if (data && data.session) {
+        return res.status(200).json({ token: data.session.access_token });
+      } else {
+        return res.status(401).json({ error: 'No session returned from Supabase.' });
+      }
     } catch (e) {
       return res.status(500).json({ error: 'Internal Server Error' });
     }
