@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
 
 const app = express();
 
@@ -10,43 +9,31 @@ const supabaseUrl = 'https://hxtnofwbutoqhgqgqwzx.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4dG5vZndidXRvcWhncWdxd3p4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxNjI2MDIsImV4cCI6MjA3MTczODYwMn0.YosfWBP0CdM9f4IUp-nL42c41M_YWiLOH6xgpA1knWU';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// --- JWT Secret ---
-const JWT_SECRET = '19d8f6196dd78d942e8f2eedf779bce87e5b1d16752b307e5fe8d47c27cf3eff5d8f28dd057520176393d265eb33432592b4051b560113827645f3731b912408';
-
 // --- Middleware ---
 app.use(cors()); // Permite todas las solicitudes de todos los orígenes
 app.use(express.json()); // Para parsear JSON en el cuerpo de las solicitudes
-
-// --- Middleware de Autenticación ---
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (token == null) return res.status(401).json({ error: 'Token no proporcionado' });
-
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: 'Token inválido o expirado' });
-    req.user = user;
-    next();
-  });
-};
 
 // --- Rutas ---
 
 // Ruta de Autenticación: /api/auth/login
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required.' });
+  }
+
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    return res.status(400).json({ error: error.message });
+    return res.status(401).json({ error: error.message });
   }
 
   res.status(200).json(data);
 });
 
-// Rutas de Datos: /api/data/:tableName (Protegidas)
-app.get('/api/data/:tableName', authenticateToken, async (req, res) => {
+// Rutas de Datos: /api/data/:tableName (sin protección, para simplificar)
+app.get('/api/data/:tableName', async (req, res) => {
   const { tableName } = req.params;
   try {
     const { data, error } = await supabase.from(tableName).select('*');
@@ -58,7 +45,7 @@ app.get('/api/data/:tableName', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/api/data/:tableName', authenticateToken, async (req, res) => {
+app.post('/api/data/:tableName', async (req, res) => {
   const { tableName } = req.params;
   const newItem = req.body;
   try {
@@ -71,7 +58,7 @@ app.post('/api/data/:tableName', authenticateToken, async (req, res) => {
   }
 });
 
-app.put('/api/data/:tableName/:id', authenticateToken, async (req, res) => {
+app.put('/api/data/:tableName/:id', async (req, res) => {
   const { tableName, id } = req.params;
   const updatedItem = req.body;
   try {
@@ -87,7 +74,7 @@ app.put('/api/data/:tableName/:id', authenticateToken, async (req, res) => {
   }
 });
 
-app.delete('/api/data/:tableName/:id', authenticateToken, async (req, res) => {
+app.delete('/api/data/:tableName/:id', async (req, res) => {
   const { tableName, id } = req.params;
   try {
     const { error, count } = await supabase.from(tableName).delete().eq('id', id);
