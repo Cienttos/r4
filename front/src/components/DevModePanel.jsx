@@ -214,7 +214,7 @@ const DevModePanel = ({ onClose, authToken, onLogout }) => {
       <div className="bg-black/90 p-4 rounded-lg border border-green-500 mt-4 animate-fade-in-scale-up">
         <h3 className="text-green-500 text-lg sm:text-base mb-4">Administrar {tableName}</h3>
 
-        {!isEditing && <button onClick={handleAddItem} className="bg-green-700 hover:bg-green-600 text-white py-2 px-4 rounded border border-green-500 mb-4 transition">Agregar {tableName}</button>}
+        {!isEditing && (tableName !== 'personal_info' || items.length === 0) && <button onClick={handleAddItem} className="bg-green-700 hover:bg-green-600 text-white py-2 px-4 rounded border border-green-500 mb-4 transition">Agregar {tableName}</button>}
 
         {isEditing && (
           <form onSubmit={handleSaveItem} className="mb-4">
@@ -230,9 +230,9 @@ const DevModePanel = ({ onClose, authToken, onLogout }) => {
         {!isEditing &&
           items.length > 0 &&
           items.map((item) => (
-            <div key={item.id} className="bg-black/80 p-3 mb-2 rounded border border-green-500 flex justify-between items-center">
-              <span className="text-green-300 sm:text-sm">{item.full_name || item.title || item.name || item.message || JSON.stringify(item)}</span>
-              <div>
+            <div key={item.id} className="bg-black/80 p-3 mb-2 rounded border border-green-500 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+              <span className="text-green-300 sm:text-sm mb-2 sm:mb-0">{item.full_name || item.title || item.name || item.message || JSON.stringify(item)}</span>
+              <div className="flex">
                 <button onClick={() => handleEditItem(item)} className="bg-green-700 hover:bg-green-600 text-white py-1 px-2 rounded border border-green-500 text-sm ml-2 transition">Editar</button>
                 <button onClick={() => onDeleteItem(item.id)} className="bg-red-700 hover:bg-red-600 text-white py-1 px-2 rounded border border-red-500 text-sm ml-2 transition">Eliminar</button>
               </div>
@@ -244,10 +244,10 @@ const DevModePanel = ({ onClose, authToken, onLogout }) => {
   });
 
   return (
-    <div className="bg-black/90 text-green-400 font-mono p-4 rounded-lg shadow-lg border border-green-500 w-11/12 md:w-3/4 lg:w-1/2 mx-auto my-8 animate-fade-in-scale-up">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-green-500 text-xl sm:text-lg">Panel de Modo Desarrollador</h2>
-        <div>
+    <div className="bg-black/90 text-green-400 font-mono p-4 rounded-lg shadow-lg border border-green-500 w-11/12 md:w-3/4 lg:w-2/3 mx-auto my-8 animate-fade-in-scale-up">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+        <h2 className="text-green-500 text-xl sm:text-lg mb-2 sm:mb-0">Panel de Modo Desarrollador</h2>
+        <div className="flex">
           <button onClick={onClose} className="bg-green-700 hover:bg-green-600 text-white py-2 px-4 rounded border border-green-500 mr-2 transition">Cerrar</button>
           <button onClick={onLogout} className="bg-green-700 hover:bg-green-600 text-white py-2 px-4 rounded border border-green-500 transition">Cerrar sesión</button>
         </div>

@@ -33,6 +33,14 @@ export default async function handler(req, res) {
       }
 
       try {
+        if (tableName === 'personal_info') {
+          const { data: existingData, error: existingError } = await supabase.from(tableName).select('id').limit(1);
+          if (existingError) throw existingError;
+          if (existingData && existingData.length > 0) {
+            return res.status(400).json({ error: 'Solo se puede crear una entrada en la tabla personal_info.' });
+          }
+        }
+
         const { data, error } = await supabase.from(tableName).insert([req.body]).select();
         if (error) throw error;
         return res.status(201).json(data[0]);
