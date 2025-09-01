@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Snackbar from './Snackbar';
+import Modal from './Modal';
 
 const tableSchemas = {
   personal_info: [
@@ -48,6 +49,8 @@ const tableSchemas = {
 const DevModePanel = ({ onClose, authToken, onLogout }) => {
   const [activeTab, setActiveTab] = useState('personal_info');
   const snackbarRef = useRef(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   const callApi = async (method, endpoint, body = null) => {
     const options = { method, headers: { 'Content-Type': 'application/json' } };
@@ -78,7 +81,7 @@ const DevModePanel = ({ onClose, authToken, onLogout }) => {
     const fetchItems = async () => {
       setLoading(true); setError(null);
       try { const data = await callApi('GET', tableName); setItems(data); }
-      catch (e) { setError(e); console.error(e); }
+      catch (e) { setError(e); console.error(e); snackbarRef.current.show('Error: '+e.message,'error'); }
       finally { setLoading(false); }
     };
 
@@ -104,12 +107,17 @@ const DevModePanel = ({ onClose, authToken, onLogout }) => {
       setFormData(itemCopy);
     };
 
-    const handleDeleteItem = async (id) => {
-      if(!window.confirm(`¿Seguro que deseas eliminar el elemento ${id}?`)) return;
+    const handleDeleteItem = (id) => {
+      setItemToDelete(id);
+      setIsModalOpen(true);
+    };
+
+    const confirmDeleteItem = async () => {
+      if (!itemToDelete) return;
       setLoading(true); setError(null);
-      try { await callApi('DELETE', `${tableName}/${id}`); snackbarRef.current.show('Elemento eliminado', 'success'); fetchItems(); }
+      try { await callApi('DELETE', `${tableName}/${itemToDelete}`); snackbarRef.current.show('Elemento eliminado', 'success'); fetchItems(); }
       catch(e){ setError(e); snackbarRef.current.show('Error: '+e.message,'error'); }
-      finally { setLoading(false); }
+      finally { setLoading(false); setIsModalOpen(false); setItemToDelete(null); }
     };
 
     const handleSaveItem = async (e) => {
@@ -190,6 +198,14 @@ const DevModePanel = ({ onClose, authToken, onLogout }) => {
         <CrudTableEditor tableName={activeTab} />
       </div>
       <Snackbar ref={snackbarRef} />
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onConfirm={confirmDeleteItem} 
+        title="Confirmar Eliminación"
+      >
+        <p>¿Estás seguro de que deseas eliminar este elemento?</p>
+      </Modal>
     </div>
   );
 };
