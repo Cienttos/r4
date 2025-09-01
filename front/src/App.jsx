@@ -60,11 +60,11 @@ function App() {
         socialLinksResponse,
         testimonialsResponse,
       ] = await Promise.all([
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/data/personal_info`, { headers }),
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/data/experience`, { headers }),
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/data/projects`, { headers }),
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/data/skills`, { headers }),
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/data/social_links`, { headers }),
+        fetch(`https://r4-seven.vercel.app/api/data/personal_info`, { headers }),
+        fetch(`https://r4-seven.vercel.app/api/data/experience`, { headers }),
+        fetch(`https://r4-seven.vercel.app/api/data/projects`, { headers }),
+        fetch(`https://r4-seven.vercel.app/api/data/skills`, { headers }),
+        fetch(`https://r4-seven.vercel.app/api/data/social_links`, { headers }),
         fetch(`https://r4-seven.vercel.app/api/data/testimonials`, { headers }),
       ]);
 
