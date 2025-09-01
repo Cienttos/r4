@@ -7,9 +7,7 @@ import errorHandler from '../utils/errorHandler.js';
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: 'https://fcp-two.vercel.app/'
-}));
+
 app.use(express.json());
 
 // Routes
