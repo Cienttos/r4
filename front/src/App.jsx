@@ -54,8 +54,18 @@ function App() {
   const fetchPortfolioData = async () => {
     setLoading(true);
     setError(null);
+
+    // Primero, asegúrate de tener el token más reciente.
+    const currentToken = localStorage.getItem("supabase.auth.token");
+
     try {
-      const headers = { "Content-Type": "application/json" };
+      // Prepara las cabeceras. Si no hay token, las rutas protegidas fallarán (lo cual es correcto).
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      if (currentToken) {
+        headers["Authorization"] = `Bearer ${currentToken}`;
+      }
 
       const [
         personalInfoResponse,
@@ -65,20 +75,12 @@ function App() {
         socialLinksResponse,
         testimonialsResponse,
       ] = await Promise.all([
-        fetch(`https://r4-seven-one.vercel.app/api/data/personal_info`, {
-          headers,
-        }),
-        fetch(`https://r4-seven-one.vercel.app/api/data/experience`, {
-          headers,
-        }),
+        fetch(`https://r4-seven-one.vercel.app/api/data/personal_info`, { headers }),
+        fetch(`https://r4-seven-one.vercel.app/api/data/experience`, { headers }),
         fetch(`https://r4-seven-one.vercel.app/api/data/projects`, { headers }),
         fetch(`https://r4-seven-one.vercel.app/api/data/skills`, { headers }),
-        fetch(`https://r4-seven-one.vercel.app/api/data/social_links`, {
-          headers,
-        }),
-        fetch(`https://r4-seven-one.vercel.app/api/data/testimonials`, {
-          headers,
-        }),
+        fetch(`https://r4-seven-one.vercel.app/api/data/social_links`, { headers }),
+        fetch(`https://r4-seven-one.vercel.app/api/data/testimonials`, { headers }),
       ]);
 
       if (!personalInfoResponse.ok)
